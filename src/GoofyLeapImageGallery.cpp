@@ -10,12 +10,14 @@
 
 GoofyLeapImageGallery::GoofyLeapImageGallery()
 {
-  swipeFree = false;
   isMoving  = false;
   prevSingleHandDetected = false;
   actualImageCount = 0;
   swipeFree = true;
   timeToWait = 1000;
+  notActiveScale = 1.1;
+  activeScale = 1;
+  actualScale = notActiveScale;
 }
 
 void  GoofyLeapImageGallery::setup()
@@ -37,7 +39,7 @@ void  GoofyLeapImageGallery::update()
 {
   leap.updateGestures();
   singleHeadDetected = (leap.getSimpleHands().size() == 1) ? true : false;
-  if(!prevSingleHandDetected)
+  if(!prevSingleHandDetected&&singleHeadDetected)
   {
     swipeFree = false;
   }
@@ -86,8 +88,8 @@ void GoofyLeapImageGallery::detectMovement()
 void GoofyLeapImageGallery::moveNext(float speed)
 {
   actualImageCount--;
-  if(actualImageCount > urlImages.size()-1)
-    actualImageCount = 0;
+  if(actualImageCount < 0)
+    actualImageCount = urlImages.size()-1;
   loadNewImage();
   move("right", speed);
 }
@@ -95,8 +97,8 @@ void GoofyLeapImageGallery::moveNext(float speed)
 void GoofyLeapImageGallery::movePrev(float speed)
 {
   actualImageCount++;
-  if(actualImageCount < 0)
-    actualImageCount = urlImages.size()-1;
+  if(actualImageCount > urlImages.size() -1)
+    actualImageCount = 0;
   loadNewImage();
   move("left", speed);
 }
@@ -148,10 +150,23 @@ void GoofyLeapImageGallery::start()
 
 void  GoofyLeapImageGallery::draw()
 {
+  if(singleHeadDetected)
+    actualScale -= .01;
+  else
+    actualScale += .01;
+  actualScale = ofClamp(actualScale, activeScale, notActiveScale);
+  ofPushMatrix();
+  ofTranslate(ofGetWindowWidth()*.5, ofGetWindowHeight()*.5);
+  ofScale(actualScale,actualScale);
+  ofPushMatrix();
+  ofTranslate(-ofGetWindowWidth()*.5, -ofGetWindowHeight()*.5);
+  //ofTranslate(ofGetWindowWidth(), ofGetWindowHeight());
   if(actualImage)
     drawMainImage();
   if(newImage)
     drawNewImage();
+  ofPopMatrix();
+  ofPopMatrix();
   ofDrawBitmapString(ofToString(actualImageCount+1) + "/" + ofToString(urlImages.size()), ofVec2f(20,20));
   if(singleHeadDetected)
   {

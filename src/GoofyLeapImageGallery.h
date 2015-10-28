@@ -52,6 +52,9 @@ private:
   void              drawNewImage();
   vector<string>    urlImages;
   int               actualImageCount;
+  float             actualScale;
+  float             notActiveScale;
+  float             activeScale;
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */
