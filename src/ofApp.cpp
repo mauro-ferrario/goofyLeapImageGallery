@@ -6,6 +6,8 @@ void ofApp::setup(){
   ofSetVerticalSync(true);
   ofSetLogLevel(OF_LOG_WARNING);
   gallery.setup();
+  ofSetWindowPosition(3000, 0);
+  ofToggleFullscreen();
 }
 
 //--------------------------------------------------------------
@@ -26,6 +28,10 @@ void ofApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
+  if(key == OF_KEY_COMMAND)
+  {
+    
+  }
 
 }
 
@@ -61,5 +67,16 @@ void ofApp::gotMessage(ofMessage msg){
 
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+  if( dragInfo.files.size() > 0 )
+  {
+    ofDirectory dir;
+    dir.listDir(dragInfo.files[0]);
+    dir.sort(); // in linux the file system doesn't return file lists ordered in alphabetical order
+    // you can now iterate through the files and load them into the ofImage vector
+    for(int i = 0; i < (int)dir.size(); i++){
+      cout << dir.getPath(i) << endl;
+      gallery.addNewImage(dir.getPath(i));
+    }
+    gallery.start();
+  }
 }

@@ -23,6 +23,8 @@ public:
   void              setup();
   void              draw();
   void              update();
+  void              addNewImage(string newUrl);
+  void              start();
 private:
   ofxLeapMotion     leap;
   bool              singleHeadDetected;
@@ -38,6 +40,8 @@ private:
   ofxMSATimer       timer;
   bool              isMoving;
   bool              swipeFree;
+  float             timerStartPosition;
+  float             timeToWait;
   bool              prevSingleHandDetected;
   void              switchImage();
   void              move(string direction, float speed = 1000);
@@ -46,6 +50,8 @@ private:
   void              detectMovement();
   void              drawMainImage();
   void              drawNewImage();
+  vector<string>    urlImages;
+  int               actualImageCount;
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */
