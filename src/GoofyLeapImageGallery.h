@@ -42,6 +42,9 @@ private:
   bool              swipeFree;
   float             timerStartPosition;
   float             timeToWait;
+  
+  float             timerStartGalleyActived;
+  float             timeToWaitGalleryActivatd;
   bool              prevSingleHandDetected;
   void              switchImage();
   void              move(string direction, float speed = 1000);
@@ -57,6 +60,7 @@ private:
   float             activeScale;
   void              setupBlurShader();
   void              drawForBlur();
+  bool              galleryActived;
   ofShader          shaderBlurX;
   ofShader          shaderBlurY;
   

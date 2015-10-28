@@ -14,6 +14,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   prevSingleHandDetected = false;
   actualImageCount = 0;
   swipeFree = true;
+  galleryActived = false;
   timeToWait = 500;
   notActiveScale = 1.1;
   activeScale = 1;
@@ -50,6 +51,11 @@ void  GoofyLeapImageGallery::update()
   if(!prevSingleHandDetected&&singleHeadDetected)
   {
     swipeFree = false;
+    galleryActived = true;
+  }
+  if(singleHeadDetected&&galleryActived)
+  {
+    timerStartGalleyActived = timer.getAppTimeMillis();
   }
   
   if (singleHeadDetected)
@@ -73,6 +79,12 @@ void  GoofyLeapImageGallery::update()
       swipeFree = true;
     }
   }
+  
+  if(timer.getAppTimeMillis() > timerStartGalleyActived + 6000)
+  {
+    galleryActived = false;
+  }
+  
   prevSingleHandDetected = singleHeadDetected;
   leap.markFrameAsOld();
 }
@@ -170,7 +182,10 @@ void  GoofyLeapImageGallery::draw()
   if(singleHeadDetected)
     actualScale -= .01;
   else
-    actualScale += .01;
+  {
+    if(!galleryActived)
+      actualScale += .01;
+  }
   actualScale = ofClamp(actualScale, activeScale, notActiveScale);
   ofPushMatrix();
   ofTranslate(ofGetWindowWidth()*.5, ofGetWindowHeight()*.5);
