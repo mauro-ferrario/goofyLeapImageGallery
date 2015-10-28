@@ -12,6 +12,8 @@
 #include "ofMain.h"
 #include "ofxLeapMotion2.h"
 #include "SingleImagePage.h"
+#include "ofxTween.h"
+#include "ofxMSATimer.h"
 
 
 class GoofyLeapImageGallery
@@ -21,14 +23,29 @@ public:
   void              setup();
   void              draw();
   void              update();
-  void              addListeners();
 private:
   ofxLeapMotion     leap;
-  void              gotSwipeEvent(SwipeEvent& args);
   bool              singleHeadDetected;
   ofPoint           prevHandPos;
   SingleImagePage*  actualImage;
+  SingleImagePage*  newImage;
   void              loadFirtImage();
+  void              loadNewImage();
+  ofxTween          tweenMainImage;
+  ofxTween          tweenNewImage;
+  ofxEasingExpo     easingMainImage;
+  ofxEasingExpo     easingNewmage;
+  ofxMSATimer       timer;
+  bool              isMoving;
+  bool              swipeFree;
+  bool              prevSingleHandDetected;
+  void              switchImage();
+  void              move(string direction, float speed = 1000);
+  void              moveNext(float speed = 1000);
+  void              movePrev(float speed = 1000);
+  void              detectMovement();
+  void              drawMainImage();
+  void              drawNewImage();
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */

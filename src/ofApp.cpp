@@ -15,6 +15,7 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+  ofBackgroundGradient(ofColor(44), ofColor(0));
   gallery.draw();
 }
 
