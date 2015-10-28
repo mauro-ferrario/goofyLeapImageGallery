@@ -10,38 +10,18 @@
 
 GoofyLeapImageGallery::GoofyLeapImageGallery()
 {
-  isMoving  = false;
-  prevSingleHandDetected = false;
-  actualImageCount = 0;
-  swipeFree = true;
-  galleryActived = false;
-  timeToWait = 500;
-  notActiveScale = 1.1;
-  activeScale = 1;
-  actualScale = notActiveScale;
-  setupBlurShader();
+  isMoving                = false;
+  prevSingleHandDetected  = false;
+  actualImageCount        = 0;
+  swipeFree               = true;
+  swipeRange              = ofVec2f(60,100);
+  transitionDuration      = 1000;
 }
 
-
-void GoofyLeapImageGallery::setupBlurShader()
-{
-  shaderBlurX.load("blur/shadersGL2/shaderBlurX");
-  shaderBlurY.load("blur/shadersGL2/shaderBlurY");
-}
-
-void  GoofyLeapImageGallery::setup()
+void GoofyLeapImageGallery::setup()
 {
   leap.open();
   leap.setupGestures();
-}
-
-void  GoofyLeapImageGallery::loadFirtImage()
-{
-  actualImageCount = 0;
-  SingleImagePage tempImage;
-  tempImage.setup(urlImages[actualImageCount], ofVec2f(ofGetWindowWidth(), ofGetWindowHeight()));
-  actualImage = new SingleImagePage();
-  *actualImage = tempImage;
 }
 
 void  GoofyLeapImageGallery::update()
@@ -50,15 +30,31 @@ void  GoofyLeapImageGallery::update()
   singleHeadDetected = (leap.getSimpleHands().size() == 1) ? true : false;
   if(!prevSingleHandDetected&&singleHeadDetected)
   {
-    swipeFree = false;
-    galleryActived = true;
+    handStartPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
   }
-  if(singleHeadDetected&&galleryActived)
+  else if(singleHeadDetected)
   {
-    timerStartGalleyActived = timer.getAppTimeMillis();
+    mainOffsetX = -handStartPos.x - leap.getSimpleHands()[0].fingers[INDEX].tip.x;
+    direction = (mainOffsetX > 0) ? SWIPE_RIGHT : SWIPE_LEFT;
   }
-  
-  if (singleHeadDetected)
+  if(prevSingleHandDetected&&!singleHeadDetected&&!isMoving)
+  {
+    if(direction == SWIPE_RIGHT)
+    {
+      if(actualImageCount > 0&&abs(mainOffsetX) > 30)
+        moveNext(transitionDuration, &easingElastic);
+      else
+        move(SWIPE_STOP, transitionDuration, &easingElastic);
+    }
+    else
+    {
+      if(actualImageCount < urlImages.size() - 2&&abs(mainOffsetX) > 30)
+        movePrev(transitionDuration, &easingElastic);
+      else
+        move(SWIPE_STOP, transitionDuration, &easingElastic);
+    }
+  }
+  if(singleHeadDetected)
   {
     if(!isMoving)
       detectMovement();
@@ -66,176 +62,140 @@ void  GoofyLeapImageGallery::update()
   if(isMoving)
   {
     if(tweenMainImage.isCompleted())
-    {
-      isMoving = false;
-      switchImage();
-      timerStartPosition = timer.getAppTimeMillis();
-    }
+      tweenCompleted();
   }
-  if(!swipeFree&&!isMoving)
-  {
-    if(timer.getAppTimeMillis() > timerStartPosition + timeToWait)
-    {
-      swipeFree = true;
-    }
-  }
-  
-  if(timer.getAppTimeMillis() > timerStartGalleyActived + 6000)
-  {
-    galleryActived = false;
-  }
-  
   prevSingleHandDetected = singleHeadDetected;
   leap.markFrameAsOld();
 }
 
+void GoofyLeapImageGallery::tweenCompleted()
+{
+  mainOffsetX = 0;
+  isMoving    = false;
+  swipeFree   = true;
+  if(singleHeadDetected)
+    handStartPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
+  switchImage();
+}
+
 void GoofyLeapImageGallery::detectMovement()
 {
-  ofPoint handPos = leap.getSimpleHands()[0].fingers[MIDDLE].tip;
-  float diff = handPos.x - prevHandPos.x;
-  ofVec2f swipeRange(40,100);
-  prevHandPos = handPos;
-  if(swipeFree)
+  if(leap.getSimpleHands()[0].fingers.size() == 0)
   {
-    if(diff < -swipeRange.x && diff > -swipeRange.y)
-      movePrev();
-    if(diff > swipeRange.x && diff < swipeRange.y)
-      moveNext();
+    ofPoint handPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
+    float diff = handPos.x - prevHandPos.x;
+    prevHandPos = handPos;
+    if(swipeFree)
+    {
+      if(diff < -swipeRange.x && diff > -swipeRange.y)
+      {
+        if(actualImageCount < urlImages.size() - 1)
+          movePrev();
+      }
+      if(diff > swipeRange.x && diff < swipeRange.y)
+      {
+        if(actualImageCount > 0)
+          moveNext();
+      }
+    }
   }
 }
 
-void GoofyLeapImageGallery::moveNext(float speed)
+void GoofyLeapImageGallery::moveNext(float speed, ofxEasing* easingType)
 {
   actualImageCount--;
   if(actualImageCount < 0)
-    actualImageCount = urlImages.size()-1;
-  loadNewImage();
-  move("right", speed);
+    actualImageCount = 0;
+  move(SWIPE_RIGHT, speed, &easingExpo);
 }
 
-void GoofyLeapImageGallery::movePrev(float speed)
+void GoofyLeapImageGallery::movePrev(float speed, ofxEasing* easingType)
 {
   actualImageCount++;
   if(actualImageCount > urlImages.size() -1)
-    actualImageCount = 0;
-  loadNewImage();
-  move("left", speed);
+    actualImageCount = urlImages.size() - 1;
+  move(SWIPE_LEFT, speed, &easingExpo);
 }
 
-void GoofyLeapImageGallery::move(string direction, float speed)
+void GoofyLeapImageGallery::move(galleryDirection direction, float speed, ofxEasing* easingType)
 {
-  float startPosMain  = 0;
-  float endPosMain    = 0;
-  float startPosNew   = 0;
-  float endPosNew     = 0;
-  if(direction == "left")
-  {
-    startPosMain = 0;
-    endPosMain = -ofGetWindowWidth();
-    startPosNew = ofGetWindowWidth();
-    endPosNew = 0;
-  }
-  else
-  {
-    startPosMain = 0;
-    endPosMain = ofGetWindowWidth();
-    startPosNew = -ofGetWindowWidth();
-    endPosNew = 0;
-  }
-  tweenMainImage.setParameters(0,easingMainImage,ofxTween::easeOut,startPosMain,endPosMain,speed,0);
-  tweenNewImage.setParameters(0,easingNewmage,ofxTween::easeOut,startPosNew, endPosNew,speed,0);
+  easingType = NULL;
   isMoving = true;
   swipeFree = false;
-}
-
-void GoofyLeapImageGallery::loadNewImage()
-{
-  newImage = new SingleImagePage();
-  newImage->setup(urlImages[actualImageCount], ofVec2f(ofGetWindowWidth(), ofGetWindowHeight()));
+  float startPosMain  = 0;
+  float endPosMain    = 0;
+  switch (direction) {
+    case SWIPE_LEFT:
+      startPosMain = mainOffsetX;
+      endPosMain = -ofGetWindowWidth();
+      break;
+    case SWIPE_RIGHT:
+      startPosMain = mainOffsetX;
+      endPosMain = ofGetWindowWidth();
+      break;
+    default:
+      startPosMain = mainOffsetX;
+      endPosMain = 0;
+      break;
+  }
+  tweenMainImage.setParameters(0,easingElastic,ofxTween::easeOut,startPosMain,endPosMain,speed,0);
 }
 
 void GoofyLeapImageGallery::switchImage()
 {
   delete actualImage;
   actualImage = NULL;
-  actualImage = newImage;
-  newImage = NULL;
+  if(actualImageCount < urlImages.size())
+    actualImage = loadImage(actualImageCount, actualImage);
+  
+  delete nextImage;
+  nextImage = NULL;
+  if(actualImageCount+1 < urlImages.size())
+    nextImage = loadImage(actualImageCount+1, nextImage);
+  
+  delete prevImage;
+  prevImage = NULL;
+  if(actualImageCount-1 >= 0)
+    prevImage = loadImage(actualImageCount-1, prevImage);
+}
+
+SingleImagePage* GoofyLeapImageGallery::loadImage(int id, SingleImagePage* img)
+{
+  img = new SingleImagePage();
+  img->setup(urlImages[id], ofVec2f(ofGetWindowWidth(), ofGetWindowHeight()));
+  return img;
 }
 
 void GoofyLeapImageGallery::start()
 {
-  setupBlurShader();
-  fboBlurOnePass.allocate(ofGetWindowWidth(), ofGetWindowHeight());
-  fboBlurTwoPass.allocate(ofGetWindowWidth(), ofGetWindowHeight());
-  fboBlurOnePass.begin();
-  ofClear(0);
-  fboBlurOnePass.end();
-  fboBlurTwoPass.begin();
-  ofClear(0);
-  fboBlurTwoPass.end();
-  loadFirtImage();
+  if(urlImages.size() > 0)
+    switchImage();
 }
 
-void  GoofyLeapImageGallery::draw()
+void GoofyLeapImageGallery::draw()
 {
-  drawForBlur();
-  if(singleHeadDetected)
-    actualScale -= .01;
+  ofPushMatrix();
+  if(!isMoving)
+    ofTranslate(mainOffsetX, 0);
   else
   {
-    if(!galleryActived)
-      actualScale += .01;
+    ofTranslate(tweenMainImage.update(), 0);
   }
-  actualScale = ofClamp(actualScale, activeScale, notActiveScale);
-  ofPushMatrix();
-  ofTranslate(ofGetWindowWidth()*.5, ofGetWindowHeight()*.5);
-  ofScale(actualScale,actualScale);
-  ofPushMatrix();
-  ofTranslate(-ofGetWindowWidth()*.5, -ofGetWindowHeight()*.5);
-  ofSetColor(ofMap(actualScale, activeScale, notActiveScale,255,100));
-  fboBlurTwoPass.draw(0, 0);
+  if(prevImage)
+    drawImage(-ofGetWindowWidth(),prevImage);
+  if(actualImage)
+    drawImage(0,actualImage);
+  if(nextImage)
+    drawImage(ofGetWindowWidth(),nextImage);
   ofPopMatrix();
-  ofPopMatrix();
-  ofSetColor(255);
   ofDrawBitmapString(ofToString(actualImageCount+1) + "/" + ofToString(urlImages.size()), ofVec2f(20,20));
 }
 
-void GoofyLeapImageGallery::drawForBlur()
-{
-  float blur = ofMap(actualScale, activeScale, notActiveScale, 0, 4);
-  fboBlurOnePass.begin();
-  shaderBlurX.begin();
-  ofClear(0);
-  shaderBlurX.setUniform1f("blurAmnt", blur);
-  if(actualImage)
-    drawMainImage();
-  if(newImage)
-    drawNewImage();
-  shaderBlurX.end();
-  fboBlurOnePass.end();
-  fboBlurTwoPass.begin();
-  ofClear(0);
-  shaderBlurY.begin();
-  shaderBlurY.setUniform1f("blurAmnt", blur);
-  fboBlurOnePass.draw(0, 0);
-  shaderBlurY.end();
-  fboBlurTwoPass.end();
-}
-
-void GoofyLeapImageGallery::drawMainImage()
+void GoofyLeapImageGallery::drawImage(int offsetX, SingleImagePage* img)
 {
   ofPushMatrix();
-  if(isMoving)
-    ofTranslate(tweenMainImage.update(), 0);
-  actualImage->draw();
-  ofPopMatrix();
-}
-
-void GoofyLeapImageGallery::drawNewImage()
-{
-  ofPushMatrix();
-  ofTranslate(tweenNewImage.update(), 0);
-  newImage->draw();
+  ofTranslate(offsetX, 0);
+  img->draw();
   ofPopMatrix();
 }
 

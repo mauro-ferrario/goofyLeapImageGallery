@@ -13,8 +13,13 @@
 #include "ofxLeapMotion2.h"
 #include "SingleImagePage.h"
 #include "ofxTween.h"
-#include "ofxMSATimer.h"
 
+enum galleryDirection
+{
+  SWIPE_STOP,
+  SWIPE_LEFT,
+  SWIPE_RIGHT
+};
 
 class GoofyLeapImageGallery
 {
@@ -30,42 +35,29 @@ private:
   bool              singleHeadDetected;
   ofPoint           prevHandPos;
   SingleImagePage*  actualImage;
-  SingleImagePage*  newImage;
-  void              loadFirtImage();
-  void              loadNewImage();
+  SingleImagePage*  nextImage;
+  SingleImagePage*  prevImage;
   ofxTween          tweenMainImage;
-  ofxTween          tweenNewImage;
-  ofxEasingExpo     easingMainImage;
-  ofxEasingExpo     easingNewmage;
-  ofxMSATimer       timer;
+  ofxEasingElastic  easingElastic;
+  ofxEasingExpo     easingExpo;
   bool              isMoving;
   bool              swipeFree;
-  float             timerStartPosition;
-  float             timeToWait;
-  
-  float             timerStartGalleyActived;
-  float             timeToWaitGalleryActivatd;
   bool              prevSingleHandDetected;
   void              switchImage();
-  void              move(string direction, float speed = 1000);
-  void              moveNext(float speed = 1000);
-  void              movePrev(float speed = 1000);
+  void              move(galleryDirection direction, float speed = 1000, ofxEasing* easingType = NULL);
+  void              moveNext(float speed = 1000, ofxEasing* easingType = NULL);
+  void              movePrev(float speed = 1000, ofxEasing* easingType = NULL);
   void              detectMovement();
-  void              drawMainImage();
-  void              drawNewImage();
+  void              drawImage(int offsetX, SingleImagePage* img);
   vector<string>    urlImages;
   int               actualImageCount;
-  float             actualScale;
-  float             notActiveScale;
-  float             activeScale;
-  void              setupBlurShader();
-  void              drawForBlur();
-  bool              galleryActived;
-  ofShader          shaderBlurX;
-  ofShader          shaderBlurY;
-  
-  ofFbo             fboBlurOnePass;
-  ofFbo             fboBlurTwoPass;
+  void              tweenCompleted();
+  SingleImagePage* loadImage(int id, SingleImagePage* img);
+  ofVec2f           handStartPos;
+  float             mainOffsetX;
+  galleryDirection  direction;
+  ofVec2f           swipeRange;
+  float             transitionDuration;
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */

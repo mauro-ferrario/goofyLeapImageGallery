@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "GoofyLeapImageGallery.h"
+#include <sys/stat.h>
 
 class ofApp : public ofBaseApp{
 
