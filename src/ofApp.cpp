@@ -5,16 +5,17 @@ void ofApp::setup(){
   ofSetFrameRate(60);
   ofSetVerticalSync(true);
   ofSetLogLevel(OF_LOG_WARNING);
+  gallery.setup();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
+  gallery.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-
+  gallery.draw();
 }
 
 //--------------------------------------------------------------
