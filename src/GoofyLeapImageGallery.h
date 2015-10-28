@@ -55,6 +55,13 @@ private:
   float             actualScale;
   float             notActiveScale;
   float             activeScale;
+  void              setupBlurShader();
+  void              drawForBlur();
+  ofShader          shaderBlurX;
+  ofShader          shaderBlurY;
+  
+  ofFbo             fboBlurOnePass;
+  ofFbo             fboBlurTwoPass;
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */

@@ -14,10 +14,18 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   prevSingleHandDetected = false;
   actualImageCount = 0;
   swipeFree = true;
-  timeToWait = 1000;
+  timeToWait = 500;
   notActiveScale = 1.1;
   activeScale = 1;
   actualScale = notActiveScale;
+  setupBlurShader();
+}
+
+
+void GoofyLeapImageGallery::setupBlurShader()
+{
+  shaderBlurX.load("blur/shadersGL2/shaderBlurX");
+  shaderBlurY.load("blur/shadersGL2/shaderBlurY");
 }
 
 void  GoofyLeapImageGallery::setup()
@@ -62,7 +70,6 @@ void  GoofyLeapImageGallery::update()
   {
     if(timer.getAppTimeMillis() > timerStartPosition + timeToWait)
     {
-      cout << ofGetTimestampString() << "LIBERO" << endl;
       swipeFree = true;
     }
   }
@@ -145,11 +152,21 @@ void GoofyLeapImageGallery::switchImage()
 
 void GoofyLeapImageGallery::start()
 {
+  setupBlurShader();
+  fboBlurOnePass.allocate(ofGetWindowWidth(), ofGetWindowHeight());
+  fboBlurTwoPass.allocate(ofGetWindowWidth(), ofGetWindowHeight());
+  fboBlurOnePass.begin();
+  ofClear(0);
+  fboBlurOnePass.end();
+  fboBlurTwoPass.begin();
+  ofClear(0);
+  fboBlurTwoPass.end();
   loadFirtImage();
 }
 
 void  GoofyLeapImageGallery::draw()
 {
+  drawForBlur();
   if(singleHeadDetected)
     actualScale -= .01;
   else
@@ -160,19 +177,34 @@ void  GoofyLeapImageGallery::draw()
   ofScale(actualScale,actualScale);
   ofPushMatrix();
   ofTranslate(-ofGetWindowWidth()*.5, -ofGetWindowHeight()*.5);
-  //ofTranslate(ofGetWindowWidth(), ofGetWindowHeight());
+  ofSetColor(ofMap(actualScale, activeScale, notActiveScale,255,100));
+  fboBlurTwoPass.draw(0, 0);
+  ofPopMatrix();
+  ofPopMatrix();
+  ofSetColor(255);
+  ofDrawBitmapString(ofToString(actualImageCount+1) + "/" + ofToString(urlImages.size()), ofVec2f(20,20));
+}
+
+void GoofyLeapImageGallery::drawForBlur()
+{
+  float blur = ofMap(actualScale, activeScale, notActiveScale, 0, 4);
+  fboBlurOnePass.begin();
+  shaderBlurX.begin();
+  ofClear(0);
+  shaderBlurX.setUniform1f("blurAmnt", blur);
   if(actualImage)
     drawMainImage();
   if(newImage)
     drawNewImage();
-  ofPopMatrix();
-  ofPopMatrix();
-  ofDrawBitmapString(ofToString(actualImageCount+1) + "/" + ofToString(urlImages.size()), ofVec2f(20,20));
-  if(singleHeadDetected)
-  {
-    ofSetColor(255);
-    ofCircle(100,100,10);
-  }
+  shaderBlurX.end();
+  fboBlurOnePass.end();
+  fboBlurTwoPass.begin();
+  ofClear(0);
+  shaderBlurY.begin();
+  shaderBlurY.setUniform1f("blurAmnt", blur);
+  fboBlurOnePass.draw(0, 0);
+  shaderBlurY.end();
+  fboBlurTwoPass.end();
 }
 
 void GoofyLeapImageGallery::drawMainImage()
