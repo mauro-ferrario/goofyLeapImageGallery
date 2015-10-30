@@ -10,12 +10,21 @@
 
 GoofyLeapImageGallery::GoofyLeapImageGallery()
 {
+  ofSetFrameRate(60);
   isMoving                = false;
   prevSingleHandDetected  = false;
   actualImageCount        = 0;
   swipeFree               = true;
   swipeRange              = ofVec2f(60,100);
   transitionDuration      = 1000;
+  maxOffsetXHandOutside   = 130;
+  counterFrameToWait       = 0;
+  
+  GoofyOSCController::addMapValue("Transition Duration", transitionDuration, 10000);
+  GoofyOSCController::addMapValue("Swipe range min", swipeRange.x, 200);
+  GoofyOSCController::addMapValue("Swipe range max", swipeRange.y, 200);
+  GoofyOSCController::addMapValue("Swipe range max", maxOffsetXHandOutside, 500);
+  
 }
 
 void GoofyLeapImageGallery::setup()
@@ -34,38 +43,52 @@ void  GoofyLeapImageGallery::update()
   }
   else if(singleHeadDetected)
   {
-    mainOffsetX = -handStartPos.x - leap.getSimpleHands()[0].fingers[INDEX].tip.x;
+    mainOffsetX = - (handStartPos.x - leap.getSimpleHands()[0].fingers[INDEX].tip.x);
     direction = (mainOffsetX > 0) ? SWIPE_RIGHT : SWIPE_LEFT;
   }
+  
   if(prevSingleHandDetected&&!singleHeadDetected&&!isMoving)
   {
-    if(direction == SWIPE_RIGHT)
-    {
-      if(actualImageCount > 0&&abs(mainOffsetX) > 30)
-        moveNext(transitionDuration, &easingElastic);
-      else
-        move(SWIPE_STOP, transitionDuration, &easingElastic);
-    }
-    else
-    {
-      if(actualImageCount < urlImages.size() - 2&&abs(mainOffsetX) > 30)
-        movePrev(transitionDuration, &easingElastic);
-      else
-        move(SWIPE_STOP, transitionDuration, &easingElastic);
-    }
+    handGoOut();
   }
+  
   if(singleHeadDetected)
   {
     if(!isMoving)
+      counterFrameToWait--;
+    if(!isMoving&&counterFrameToWait <= 0)
       detectMovement();
   }
+
   if(isMoving)
   {
     if(tweenMainImage.isCompleted())
+    {      
       tweenCompleted();
+    }
   }
+  
   prevSingleHandDetected = singleHeadDetected;
   leap.markFrameAsOld();
+}
+
+void GoofyLeapImageGallery::handGoOut()
+{
+  //cout << abs(mainOffsetX) << endl;
+  if(direction == SWIPE_RIGHT)
+  {
+    if(actualImageCount > 0&&abs(mainOffsetX) > maxOffsetXHandOutside)
+      moveNext(transitionDuration, &easingElastic);
+    else
+      move(SWIPE_STOP, transitionDuration, &easingElastic);
+  }
+  else
+  {
+    if(actualImageCount < urlImages.size() - 1&&abs(mainOffsetX) > maxOffsetXHandOutside)
+      movePrev(transitionDuration, &easingElastic);
+    else
+      move(SWIPE_STOP, transitionDuration, &easingElastic);
+  }
 }
 
 void GoofyLeapImageGallery::tweenCompleted()
@@ -80,20 +103,22 @@ void GoofyLeapImageGallery::tweenCompleted()
 
 void GoofyLeapImageGallery::detectMovement()
 {
-  if(leap.getSimpleHands()[0].fingers.size() == 0)
+  if(leap.getSimpleHands()[0].fingers.size() >= 4)
   {
     ofPoint handPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
     float diff = handPos.x - prevHandPos.x;
     prevHandPos = handPos;
     if(swipeFree)
     {
-      if(diff < -swipeRange.x && diff > -swipeRange.y)
+      if(diff > -swipeRange.y && diff < -swipeRange.x)
       {
+        cout << "1 = " << diff << endl;
         if(actualImageCount < urlImages.size() - 1)
           movePrev();
       }
       if(diff > swipeRange.x && diff < swipeRange.y)
       {
+        cout << "2 = " << diff << endl;
         if(actualImageCount > 0)
           moveNext();
       }

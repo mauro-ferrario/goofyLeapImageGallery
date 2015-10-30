@@ -13,6 +13,7 @@
 #include "ofxLeapMotion2.h"
 #include "SingleImagePage.h"
 #include "ofxTween.h"
+#include "GoofyOSCControllerUtils.h"
 
 enum galleryDirection
 {
@@ -44,6 +45,7 @@ private:
   bool              swipeFree;
   bool              prevSingleHandDetected;
   void              switchImage();
+  void              handGoOut();
   void              move(galleryDirection direction, float speed = 1000, ofxEasing* easingType = NULL);
   void              moveNext(float speed = 1000, ofxEasing* easingType = NULL);
   void              movePrev(float speed = 1000, ofxEasing* easingType = NULL);
@@ -52,12 +54,14 @@ private:
   vector<string>    urlImages;
   int               actualImageCount;
   void              tweenCompleted();
-  SingleImagePage* loadImage(int id, SingleImagePage* img);
+  SingleImagePage*  loadImage(int id, SingleImagePage* img);
   ofVec2f           handStartPos;
   float             mainOffsetX;
   galleryDirection  direction;
   ofVec2f           swipeRange;
+  float             maxOffsetXHandOutside;
   float             transitionDuration;
+  int               counterFrameToWait;
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */
