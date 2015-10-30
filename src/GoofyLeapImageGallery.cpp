@@ -15,7 +15,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   prevSingleHandDetected  = false;
   actualImageCount        = 0;
   swipeFree               = true;
-  swipeRange              = ofVec2f(60,100);
+  swipeRange              = ofVec2f(200,200);
   transitionDuration      = 1000;
   maxOffsetXHandOutside   = 130;
   counterFrameToWait       = 0;
