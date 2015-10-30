@@ -41,6 +41,8 @@ bool GoofyLeapImageGallery::getSingleHandDetected()
 
 void  GoofyLeapImageGallery::update()
 {
+  if(urlImages.size() == 0)
+    return;
   singleHeadDetected = (leap.getSimpleHands().size() == 1) ? true : false;
   if(!prevSingleHandDetected&&singleHeadDetected)
   {
