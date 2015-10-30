@@ -34,9 +34,13 @@ void GoofyLeapImageGallery::setup()
   leap.setupGestures();
 }
 
+bool GoofyLeapImageGallery::getSingleHandDetected()
+{
+  return (leap.getSimpleHands().size() == 1) ? true : false;
+}
+
 void  GoofyLeapImageGallery::update()
 {
-  leap.updateGestures();
   singleHeadDetected = (leap.getSimpleHands().size() == 1) ? true : false;
   if(!prevSingleHandDetected&&singleHeadDetected)
   {
@@ -44,7 +48,8 @@ void  GoofyLeapImageGallery::update()
   }
   else if(singleHeadDetected)
   {
-    mainOffsetX = - (handStartPos.x - leap.getSimpleHands()[0].fingers[INDEX].tip.x);
+    if(getSingleHandDetected())
+      mainOffsetX = - (handStartPos.x - leap.getSimpleHands()[0].fingers[INDEX].tip.x);
     direction = (mainOffsetX > 0) ? SWIPE_RIGHT : SWIPE_LEFT;
   }
   
@@ -114,7 +119,6 @@ void GoofyLeapImageGallery::drawHand()
 
 void GoofyLeapImageGallery::handGoOut()
 {
-  //cout << abs(mainOffsetX) << endl;
   if(direction == SWIPE_RIGHT)
   {
     if(actualImageCount > 0&&abs(mainOffsetX) > maxOffsetXHandOutside)
@@ -145,22 +149,25 @@ void GoofyLeapImageGallery::detectMovement()
 {
   if(leap.getSimpleHands()[0].fingers.size() >= 4)
   {
-    ofPoint handPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
-    float diff = handPos.x - prevHandPos.x;
-    prevHandPos = handPos;
-    if(swipeFree)
+    // Crash
+    singleHeadDetected = (leap.getSimpleHands().size() == 1) ? true : false;
+    if(getSingleHandDetected())
     {
-      if(diff > -swipeRange.y && diff < -swipeRange.x)
+      ofPoint handPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
+      float diff = handPos.x - prevHandPos.x;
+      prevHandPos = handPos;
+      if(swipeFree)
       {
-        cout << "1 = " << diff << endl;
-        if(actualImageCount < urlImages.size() - 1)
-          movePrev();
-      }
-      if(diff > swipeRange.x && diff < swipeRange.y)
-      {
-        cout << "2 = " << diff << endl;
-        if(actualImageCount > 0)
-          moveNext();
+        if(diff > -swipeRange.y && diff < -swipeRange.x)
+        {
+          if(actualImageCount < urlImages.size() - 1)
+            movePrev();
+        }
+        if(diff > swipeRange.x && diff < swipeRange.y)
+        {
+          if(actualImageCount > 0)
+            moveNext();
+        }
       }
     }
   }
