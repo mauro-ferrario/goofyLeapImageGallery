@@ -19,6 +19,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   transitionDuration      = 1000;
   maxOffsetXHandOutside   = 130;
   counterFrameToWait       = 0;
+  cam.setOrientation(ofPoint(-20, 0, 0));
   
   GoofyOSCController::addMapValue("Transition Duration", transitionDuration, 10000);
   GoofyOSCController::addMapValue("Swipe range min", swipeRange.x, 200);
@@ -67,9 +68,48 @@ void  GoofyLeapImageGallery::update()
       tweenCompleted();
     }
   }
-  
+  updateFingers();
   prevSingleHandDetected = singleHeadDetected;
   leap.markFrameAsOld();
+}
+
+void GoofyLeapImageGallery::updateFingers()
+{
+  fingersFound.clear();
+  simpleHands = leap.getSimpleHands();
+  if( leap.isFrameNew() && simpleHands.size() ){
+    
+    leap.setMappingX(-230, 230, -ofGetWidth()/2, ofGetWidth()/2);
+    leap.setMappingY(90, 490, -ofGetHeight()/2, ofGetHeight()/2);
+    leap.setMappingZ(-150, 150, -200, 200);
+    
+    fingerType fingerTypes[] = {THUMB, INDEX, MIDDLE, RING, PINKY};
+    
+    for(int i = 0; i < simpleHands.size(); i++){
+      for (int f=0; f<5; f++) {
+        int id = simpleHands[i].fingers[ fingerTypes[f] ].id;
+        ofPoint mcp = simpleHands[i].fingers[ fingerTypes[f] ].mcp; // metacarpal
+        ofPoint pip = simpleHands[i].fingers[ fingerTypes[f] ].pip; // proximal
+        ofPoint dip = simpleHands[i].fingers[ fingerTypes[f] ].dip; // distal
+        ofPoint tip = simpleHands[i].fingers[ fingerTypes[f] ].tip; // fingertip
+        fingersFound.push_back(id);
+      }
+    }
+  }
+}
+
+void GoofyLeapImageGallery::drawHand()
+{
+  cam.begin();
+  fingerType fingerTypes[] = {THUMB, INDEX, MIDDLE, RING, PINKY};
+  for(int i = 0; i < simpleHands.size(); i++)
+  {
+    bool isLeft = simpleHands[i].isLeft;
+    ofPoint tip = simpleHands[i].fingers[ fingerTypes[3] ].tip;  // fingertip
+    ofSetColor(0, 100);
+    ofDrawSphere(tip.x, tip.y, tip.z, 50);
+  }
+  cam.end();
 }
 
 void GoofyLeapImageGallery::handGoOut()
@@ -213,6 +253,13 @@ void GoofyLeapImageGallery::draw()
   if(nextImage)
     drawImage(ofGetWindowWidth(),nextImage);
   ofPopMatrix();
+  
+  //glEnable(GL_DEPTH_TEST);
+  glEnable(GL_NORMALIZE);
+  drawHand();
+  
+  //glDisable(GL_DEPTH_TEST);
+  glDisable(GL_NORMALIZE);
   ofDrawBitmapString(ofToString(actualImageCount+1) + "/" + ofToString(urlImages.size()), ofVec2f(20,20));
 }
 

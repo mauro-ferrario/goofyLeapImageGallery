@@ -62,6 +62,13 @@ private:
   float             maxOffsetXHandOutside;
   float             transitionDuration;
   int               counterFrameToWait;
+  
+  vector <int>      fingersFound;
+  ofEasyCam         cam;
+  void              updateFingers();
+  vector <ofxLeapMotionSimpleHand> simpleHands;
+  void              drawHand();
+  bool              getSingleHandDetected();
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */
