@@ -6,7 +6,6 @@ void ofApp::setup(){
   ofSetVerticalSync(true);
   ofSetLogLevel(OF_LOG_WARNING);
   gallery.setup();
-  ofSetWindowPosition(3000, 0);
   ofToggleFullscreen();
 }
 
