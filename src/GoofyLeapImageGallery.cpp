@@ -151,8 +151,6 @@ void GoofyLeapImageGallery::detectMovement()
 {
   if(leap.getSimpleHands()[0].fingers.size() >= 4)
   {
-    // Crash
-    singleHeadDetected = (leap.getSimpleHands().size() == 1) ? true : false;
     if(getSingleHandDetected())
     {
       ofPoint handPos = leap.getSimpleHands()[0].fingers[INDEX].tip;
