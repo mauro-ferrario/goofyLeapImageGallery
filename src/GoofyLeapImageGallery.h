@@ -13,7 +13,7 @@
 #include "ofxLeapMotion2.h"
 #include "SingleImagePage.h"
 #include "ofxTween.h"
-#include "GoofyOSCControllerUtils.h"
+#include "GoofyOSCController.h"
 
 enum galleryDirection
 {
