@@ -24,7 +24,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   GoofyOSCController::addMapValue("Transition Duration", transitionDuration, 10000);
   GoofyOSCController::addMapValue("Swipe range min", swipeRange.x, 200);
   GoofyOSCController::addMapValue("Swipe range max", swipeRange.y, 200);
-  GoofyOSCController::addMapValue("Swipe range max", maxOffsetXHandOutside, 500);
+  GoofyOSCController::addMapValue("Max Offset X Hand Outside", maxOffsetXHandOutside, 500);
   
 }
 
