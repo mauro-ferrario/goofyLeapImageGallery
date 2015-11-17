@@ -6,7 +6,6 @@ void ofApp::setup(){
   ofSetVerticalSync(true);
   ofSetLogLevel(OF_LOG_WARNING);
   gallery.setup();
-  ofToggleFullscreen();
 }
 
 //--------------------------------------------------------------
@@ -27,6 +26,8 @@ void ofApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
+  if(key == 'f')
+    ofToggleFullscreen();
 }
 
 //--------------------------------------------------------------
