@@ -55,7 +55,7 @@ private:
   int               actualImageCount;
   void              tweenCompleted();
   SingleImagePage*  loadImage(int id, SingleImagePage* img);
-  ofVec2f           handStartPos;
+  ofVec3f           handStartPos;
   float             mainOffsetX;
   galleryDirection  direction;
   ofVec2f           swipeRange;
@@ -69,6 +69,10 @@ private:
   vector <ofxLeapMotionSimpleHand> simpleHands;
   void              drawHand();
   bool              getSingleHandDetected();
+  float             scaleFactor;
+  float             maxScaleFactor;
+  float             minZForZoom;
+  float             maxZForZoom;
 };
 
 #endif /* defined(__goofyLeapImageGallery__GoofyLeapImageGallery__) */

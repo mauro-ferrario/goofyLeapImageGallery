@@ -18,14 +18,19 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   swipeRange              = ofVec2f(200,200);
   transitionDuration      = 1000;
   maxOffsetXHandOutside   = 130;
-  counterFrameToWait       = 0;
+  counterFrameToWait      = 0;
   cam.setOrientation(ofPoint(-20, 0, 0));
-  
+  scaleFactor             = 1;
+  maxScaleFactor          = 1.5;
+  minZForZoom             = -200;
+  maxZForZoom             = -50;
   GoofyOSCController::addMapValue("Transition Duration", transitionDuration, 10000);
   GoofyOSCController::addMapValue("Swipe range min", swipeRange.x, 200);
   GoofyOSCController::addMapValue("Swipe range max", swipeRange.y, 200);
   GoofyOSCController::addMapValue("Max Offset X Hand Outside", maxOffsetXHandOutside, 500);
-  
+  GoofyOSCController::addMapValue("Max Scale Factor", maxScaleFactor, 5);
+  GoofyOSCController::addMapValue("Min Z For Zoom", minZForZoom, -400);
+  GoofyOSCController::addMapValue("Max Z For Zoom", maxZForZoom, -400);  
 }
 
 void GoofyLeapImageGallery::setup()
@@ -51,7 +56,11 @@ void  GoofyLeapImageGallery::update()
   else if(singleHeadDetected)
   {
     if(getSingleHandDetected())
+    {
       mainOffsetX = - (handStartPos.x - leap.getSimpleHands()[0].fingers[INDEX].tip.x);
+      scaleFactor = ofClamp(leap.getSimpleHands()[0].fingers[INDEX].tip.z, minZForZoom, maxZForZoom);
+    }
+    scaleFactor = ofMap(scaleFactor, maxZForZoom, minZForZoom, 1, maxScaleFactor);
     direction = (mainOffsetX > 0) ? SWIPE_RIGHT : SWIPE_LEFT;
   }
   
@@ -70,6 +79,8 @@ void  GoofyLeapImageGallery::update()
 
   if(isMoving)
   {
+    if(scaleFactor > 1)
+      scaleFactor -= .2;
     if(tweenMainImage.isCompleted())
     {      
       tweenCompleted();
@@ -247,6 +258,10 @@ void GoofyLeapImageGallery::start()
 void GoofyLeapImageGallery::draw()
 {
   ofPushMatrix();
+  ofTranslate(ofGetWindowWidth()*.5, ofGetWindowHeight()*.5);
+  ofScale(scaleFactor, scaleFactor);
+  ofPushMatrix();
+  ofTranslate(-ofGetWindowWidth()*.5, -ofGetWindowHeight()*.5);
   if(!isMoving)
     ofTranslate(mainOffsetX, 0);
   else
@@ -259,6 +274,7 @@ void GoofyLeapImageGallery::draw()
     drawImage(0,actualImage);
   if(nextImage)
     drawImage(ofGetWindowWidth(),nextImage);
+  ofPopMatrix();
   ofPopMatrix();
   
   //glEnable(GL_DEPTH_TEST);
