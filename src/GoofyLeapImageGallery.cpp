@@ -30,7 +30,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   GoofyOSCController::addMapValue("Max Offset X Hand Outside", maxOffsetXHandOutside, 500);
   GoofyOSCController::addMapValue("Max Scale Factor", maxScaleFactor, 5);
   GoofyOSCController::addMapValue("Min Z For Zoom", minZForZoom, -400);
-  GoofyOSCController::addMapValue("Max Z For Zoom", maxZForZoom, -400);  
+  GoofyOSCController::addMapValue("Max Z For Zoom", maxZForZoom, -400);
 }
 
 void GoofyLeapImageGallery::setup()
