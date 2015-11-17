@@ -6,6 +6,7 @@ void ofApp::setup(){
   ofSetVerticalSync(true);
   ofSetLogLevel(OF_LOG_WARNING);
   gallery.setup();
+  ofHideCursor();
 }
 
 //--------------------------------------------------------------
