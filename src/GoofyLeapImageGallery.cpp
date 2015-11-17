@@ -81,6 +81,8 @@ void  GoofyLeapImageGallery::update()
   {
     if(scaleFactor > 1)
       scaleFactor -= .2;
+    if(scaleFactor < 1)
+      scaleFactor = 1;
     if(tweenMainImage.isCompleted())
     {      
       tweenCompleted();
