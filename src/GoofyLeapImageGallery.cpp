@@ -23,7 +23,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   scaleFactor             = 1;
   maxScaleFactor          = 1.5;
   minZForZoom             = -200;
-  maxZForZoom             = -50;
+  maxZForZoom             = -100;
   GoofyOSCController::addMapValue("Transition Duration", transitionDuration, 10000);
   GoofyOSCController::addMapValue("Swipe range min", swipeRange.x, 200);
   GoofyOSCController::addMapValue("Swipe range max", swipeRange.y, 200);
@@ -31,6 +31,7 @@ GoofyLeapImageGallery::GoofyLeapImageGallery()
   GoofyOSCController::addMapValue("Max Scale Factor", maxScaleFactor, 5);
   GoofyOSCController::addMapValue("Min Z For Zoom", minZForZoom, -400);
   GoofyOSCController::addMapValue("Max Z For Zoom", maxZForZoom, -400);
+  GoofyOSCController::toggleDraw();
 }
 
 void GoofyLeapImageGallery::setup()

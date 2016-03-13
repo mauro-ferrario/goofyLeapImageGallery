@@ -7,6 +7,14 @@ void ofApp::setup(){
   ofSetLogLevel(OF_LOG_WARNING);
   gallery.setup();
   ofHideCursor();
+  ofDirectory dir;
+  dir.listDir("quadernini");
+  dir.sort();
+  for(int i = 0; i < (int)dir.size(); i++)
+    gallery.addNewImage(dir.getPath(i));
+  ofSetWindowPosition(1500, 0);
+  ofToggleFullscreen();
+  gallery.start();
 }
 
 //--------------------------------------------------------------
